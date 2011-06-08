@@ -1,50 +1,15 @@
 This version has been modified to work on Mac OSX (Specifically tested on 10.6.7)
 
-The build process uses scons, a build tool written in python. You'll
-need to have python installed, but scons installation is optional: a
-runtime copy of scons (called scons-local) is included with zxing. To
-use the included copy of scons-local, where the instructons says enter
-"scons", enter "python scons/scons.py" instead. For example, to build
-the library only, you'd use "python scons/scons.py lib" instead of
-"scons lib".
+The scons build tool was replaced with GNU make to reduce the size of the repo, and to remove the dependency on Python.
 
-To build the library only:
-- Run "scons lib" in this folder (cpp)
+For the original library, and other ports including the original Java library, see: http://code.google.com/p/zxing
 
-To build the unit tests:
-- Install cppunit (libcppunit-dev on Ubuntu)
-- Run "scons tests"
-- Run "testrunner" in the build folder
+To install:
 
-To build the test utility:
-- Install Magick++ (libmagick++-dev on Ubuntu)
-- Run "scons zxing"
+make && make install
 
-An simple example application is now also included, but no compilation instructions yet.
+To test:
+./bin/qrdecode ~/qrcode.png
 
-To clean:
-- Run "scons -c all"
-
-To use the test utility:
-- Basic usage:
-  - "mkdir testout"
-  - "zxing testout *.jpg > report.html"
-- With the zxing test data, from the cpp folder:
-  - "mkdir testout"
-  - "build/zxing testout ../core/test/data/blackbox/qrcode-*/* > report.html"
-
-To format the code:
- - Install astyle
- - Run ./format
-
-To profile the code (very useful to optimize the code):
- - Install valgrind
- - "valgrind --tool=callgrind build/zxing - path/to/test/data/*.jpg > report.html"
- - kcachegrind is a very nice tool to analize the output
-
-To use the binary, you can use commands similar to:
-	mkdir -p build/magick/src
-	g++ -o build/magick/src/MagickBitmapSource.o -c -O -g3 -Wall -I/usr/local/include/ImageMagick -Icore/src magick/src/MagickBitmapSource.cpp
-	g++ -o build/magick/src/main.o -c -O -g3 -Wall -I/usr/local/include/ImageMagick -Icore/src magick/src/main.cpp
-	g++ -o build/test build/magick/src/MagickBitmapSource.o build/magick/src/main.o -lMagick++ -lMagickWand -lMagickCore build/zxing.a
-	./build/test ~/Desktop/qr-codea.png
+Maintained by:
+Joshua Davey (jgdavey) and Dave Lyon (davelyon)
