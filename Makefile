@@ -30,10 +30,17 @@ build/zxing.a: $(OBJ)
 checkdirs: $(BUILD_DIR)
 
 $(BUILD_DIR):
-	@mkdir -p $@
+	mkdir -p $@
 
 clean:
-	@rm -rf build/
+	rm -rf build/
+	rm -rf bin/
+	rm -rf lib/
+
+install:
+	mkdir -p lib bin
+	cp -f build/zxing.a lib/zxing
+	mv -f build/qrdecode bin
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 
