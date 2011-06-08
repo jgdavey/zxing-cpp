@@ -1,5 +1,4 @@
 CC        := g++ -Wall -O -g3
-LD        := ar rc
 
 UTIL_INCLUDE := -I/usr/local/include/ImageMagick -Isrc
 UTIL_LIBS = -lMagick++ -lMagickWand -lMagickCore -liconv
@@ -24,8 +23,7 @@ endef
 all: checkdirs build/zxing.a util
 
 build/zxing.a: $(OBJ)
-	$(LD) $@ $^
-	ranlib $@
+	libtool -o $@ - $^
 
 checkdirs: $(BUILD_DIR)
 
