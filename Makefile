@@ -2,13 +2,12 @@ CC        := g++ -Wall -O -g3
 LD        := ar rc
 
 MODULES   := zxing zxing/common zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
-SRC_DIR   := $(addprefix core/src/,$(MODULES))
+SRC_DIR   := $(addprefix src/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 
 SRC       := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
-OBJ       := $(patsubst core/src/%.cpp,build/%.o,$(SRC))
-INCLUDES  := -Icore/src/ $(addprefix -I,$(SRC_DIR))
-# INCLUDES  := -Icore/src/
+OBJ       := $(patsubst src/%.cpp,build/%.o,$(SRC))
+INCLUDES  := -Isrc $(addprefix -I,$(SRC_DIR))
 
 vpath %.cpp $(SRC_DIR)
 
@@ -31,6 +30,6 @@ $(BUILD_DIR):
 	@mkdir -p $@
 
 clean:
-	@rm -rf $(BUILD_DIR)
+	@rm -rf build/
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
