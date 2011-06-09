@@ -1,6 +1,6 @@
 CC        := g++ -Wall -O -g3 -dynamic -fPIC -fno-common
 
-UTIL_INCLUDE := -I/usr/local/include/ImageMagick -Isrc
+UTIL_INCLUDE := $(shell Magick-config --cppflags) -Isrc
 UTIL_LIBS = -lMagick++ -lMagickWand -lMagickCore -liconv
 
 MODULES   := zxing zxing/common zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
