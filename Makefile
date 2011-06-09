@@ -18,7 +18,7 @@ $1/%.o: %.cpp
 	$(CC) $(INCLUDES) -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean
+.PHONY: all checkdirs clean include install
 
 all: checkdirs build/libzxing.so
 
@@ -31,13 +31,21 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
+	rm -rf include/
 	rm -rf build/
 	rm -rf bin/
 	rm -rf lib/
 
-install:
+install: include
 	mkdir -p lib
 	cp -f build/libzxing.so lib/libzxing.so
+
+include:
+	mkdir include
+	find src -type d -exec mkdir include/\{\} \;
+	find src -name *.h -exec cp -Rf \{\} include/\{\} \;
+	mv include/src/zxing include/zxing;
+	rm -rf include/src
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 
