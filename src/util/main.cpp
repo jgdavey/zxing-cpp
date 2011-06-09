@@ -37,17 +37,6 @@
 #include <zxing/BinaryBitmap.h>
 #include <zxing/DecodeHints.h>
 
-// #include <iostream>
-// #include <fstream>
-// #include <string>
-// #include <Magick++.h>
-// #include "MagickBitmapSource.h"
-// #include <zxing/Binarizer.h>
-// #include <zxing/qrcode/QRCodeReader.h>
-// #include <zxing/common/GlobalHistogramBinarizer.h>
-// #include <zxing/common/LocalBlockBinarizer.h>
-// #include <zxing/Exception.h>
-
 using namespace Magick;
 using namespace std;
 using namespace zxing;

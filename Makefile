@@ -1,4 +1,4 @@
-CC        := g++ -Wall -O -g3
+CC        := g++ -Wall -O -g3 -dynamic -fPIC -fno-common
 
 UTIL_INCLUDE := -I/usr/local/include/ImageMagick -Isrc
 UTIL_LIBS = -lMagick++ -lMagickWand -lMagickCore -liconv
@@ -20,10 +20,10 @@ endef
 
 .PHONY: all checkdirs clean
 
-all: checkdirs build/zxing.a util
+all: checkdirs build/zxing.so util
 
-build/zxing.a: $(OBJ)
-	libtool -o $@ - $^
+build/zxing.so: $(OBJ)
+	g++ -shared -o $@ $^ $(UTIL_LIBS)
 
 checkdirs: $(BUILD_DIR)
 
@@ -37,13 +37,13 @@ clean:
 
 install:
 	mkdir -p lib bin
-	cp -f build/zxing.a lib/zxing
+	cp -f build/zxing.so lib/zxing.so
 	mv -f build/qrdecode bin
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 
 util: main.o MagickBitmapSource.o
-	$(CC) -o build/qrdecode $(addprefix build/,$^) $(UTIL_LIBS) build/zxing.a
+	$(CC) -o build/qrdecode $(addprefix build/,$^) $(UTIL_LIBS) build/zxing.so
 
 main.o: main.cpp
 	$(CC) -c $(UTIL_INCLUDE) -o build/$@ $<
