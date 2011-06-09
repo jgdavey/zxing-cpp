@@ -20,9 +20,9 @@ endef
 
 .PHONY: all checkdirs clean
 
-all: checkdirs build/zxing.so util
+all: checkdirs build/libzxing.so util
 
-build/zxing.so: $(OBJ)
+build/libzxing.so: $(OBJ)
 	g++ -shared -o $@ $^ $(UTIL_LIBS)
 
 checkdirs: $(BUILD_DIR)
@@ -37,13 +37,13 @@ clean:
 
 install:
 	mkdir -p lib bin
-	cp -f build/zxing.so lib/zxing.so
+	cp -f build/libzxing.so lib/libzxing.so
 	mv -f build/qrdecode bin
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 
 util: main.o MagickBitmapSource.o
-	$(CC) -o build/qrdecode $(addprefix build/,$^) $(UTIL_LIBS) build/zxing.so
+	$(CC) -o build/qrdecode $(addprefix build/,$^) $(UTIL_LIBS) -Lbuild -lzxing
 
 main.o: main.cpp
 	$(CC) -c $(UTIL_INCLUDE) -o build/$@ $<
