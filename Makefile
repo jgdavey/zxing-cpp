@@ -1,4 +1,4 @@
-CC        := g++ -Wall -O -g3 -dynamic -fPIC -fno-common
+CC        := g++ -Wall -O -g3 -fPIC -fno-common
 
 MODULES   := zxing zxing/common zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
 SRC_DIR   := $(addprefix src/,$(MODULES))
