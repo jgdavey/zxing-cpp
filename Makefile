@@ -24,7 +24,7 @@ endef
 
 .PHONY: all checkdirs clean include install
 
-all: checkdirs build/libzxing.so
+all: checkdirs build/libzxing.so include
 
 build/libzxing.so: $(OBJ)
 	g++ -shared -o $@ $^ $(EXTRA)
@@ -40,7 +40,7 @@ clean:
 	rm -rf bin/
 	rm -rf lib/
 
-install: include
+install: all
 	cp -p build/libzxing.so $(PREFIX)/lib/libzxing.so
 	cp -Rp include/zxing $(PREFIX)/include
 
