@@ -41,7 +41,9 @@ clean:
 	rm -rf lib/
 
 install: all
+	mkdir -p $(PREFIX)/lib
 	cp -p build/libzxing.so $(PREFIX)/lib/libzxing.so
+	mkdir -p $(PREFIX)/include
 	cp -Rp include/zxing $(PREFIX)/include
 
 include:
