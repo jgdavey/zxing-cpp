@@ -1,7 +1,4 @@
 CC        := g++ -Wall -O -g3 -dynamic -fPIC -fno-common
-# $(shell Magick-config --cppflags) If ImageMagick needed
-UTIL_INCLUDE := -Isrc
-# UTIL_LIBS = -lMagick++ -lMagickWand -lMagickCore -liconv
 
 MODULES   := zxing zxing/common zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
 SRC_DIR   := $(addprefix src/,$(MODULES))
@@ -48,13 +45,3 @@ include:
 	rm -rf include/src
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
-
-# util: build/libzxing.so main.o MagickBitmapSource.o
-	# mkdir -p bin
-	# $(CC) -o build/qrdecode $(addprefix build/,$^) $(UTIL_LIBS) -Lbuild -lzxing
-
-# main.o: main.cpp
-	# $(CC) -c $(UTIL_INCLUDE) -o build/$@ $<
-
-# MagickBitmapSource.o: MagickBitmapSource.cpp
-	# $(CC) -c $(UTIL_INCLUDE) -o build/$@ $<
