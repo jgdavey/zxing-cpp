@@ -5,6 +5,7 @@ ifeq ($(uname_S),Darwin)
 	EXTRA := -liconv
 endif
 
+PREFIX = /usr/local
 
 MODULES   := zxing zxing/common zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
 SRC_DIR   := $(addprefix src/,$(MODULES))
@@ -14,7 +15,7 @@ SRC       := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
 OBJ       := $(patsubst src/%.cpp,build/%.o,$(SRC))
 INCLUDES  := -Isrc
 
-vpath %.cpp $(SRC_DIR) src/util
+vpath %.cpp $(SRC_DIR)
 
 define make-goal
 $1/%.o: %.cpp
@@ -40,11 +41,11 @@ clean:
 	rm -rf lib/
 
 install: include
-	mkdir -p lib
-	cp -f build/libzxing.so lib/libzxing.so
+	cp -p build/libzxing.so $(PREFIX)/lib/libzxing.so
+	cp -Rp include/zxing $(PREFIX)/include
 
 include:
-	mkdir include
+	mkdir -p include
 	find src -type d -exec mkdir include/\{\} \;
 	find src -name *.h -exec cp -Rf \{\} include/\{\} \;
 	mv include/src/zxing include/zxing;
