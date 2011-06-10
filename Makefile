@@ -1,5 +1,11 @@
 CC        := g++ -Wall -O -g3 -fPIC -fno-common
 
+uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+ifeq ($(uname_S),Darwin)
+	EXTRA := -liconv
+endif
+
+
 MODULES   := zxing zxing/common zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
 SRC_DIR   := $(addprefix src/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
@@ -20,7 +26,7 @@ endef
 all: checkdirs build/libzxing.so
 
 build/libzxing.so: $(OBJ)
-	g++ -shared -o $@ $^ -liconv
+	g++ -shared -o $@ $^ $(EXTRA)
 
 checkdirs: $(BUILD_DIR)
 
