@@ -6,7 +6,13 @@ For the original library, and other ports including the original Java library, s
 
 To install:
 
-make && make install
+If you have access to /usr/local/*:
+
+    make && make install
+
+Otherwise:
+
+    make && sudo make install
 
 To test:
 ./bin/qrdecode ~/qrcode.png
