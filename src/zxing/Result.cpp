@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
  *  Result.cpp
  *  zxing
@@ -25,7 +26,7 @@ using namespace std;
 
 Result::Result(Ref<String> text, ArrayRef<unsigned char> rawBytes, std::vector<Ref<ResultPoint> > resultPoints,
                BarcodeFormat format) :
-    text_(text), rawBytes_(rawBytes), resultPoints_(resultPoints), format_(format) {
+  text_(text), rawBytes_(rawBytes), resultPoints_(resultPoints), format_(format) {
 }
 
 Result::~Result() {
@@ -40,6 +41,10 @@ ArrayRef<unsigned char> Result::getRawBytes() {
 }
 
 const std::vector<Ref<ResultPoint> >& Result::getResultPoints() const {
+  return resultPoints_;
+}
+
+std::vector<Ref<ResultPoint> >& Result::getResultPoints() {
   return resultPoints_;
 }
 

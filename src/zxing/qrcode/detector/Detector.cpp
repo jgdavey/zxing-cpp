@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
  *  Detector.cpp
  *  zxing
@@ -26,9 +27,11 @@
 #include <zxing/qrcode/Version.h>
 #include <zxing/common/GridSampler.h>
 #include <zxing/DecodeHints.h>
-#include <cmath>
+#include <zxing/common/detector/math_utils.h>
 #include <sstream>
 #include <cstdlib>
+
+namespace math_utils = zxing::common::detector::math_utils;
 
 namespace zxing {
 namespace qrcode {
@@ -39,15 +42,22 @@ Detector::Detector(Ref<BitMatrix> image) :
     image_(image) {
 }
 
-Ref<BitMatrix> Detector::getImage() {
+Ref<BitMatrix> Detector::getImage() const {
    return image_;
+}
+
+Ref<ResultPointCallback> Detector::getResultPointCallback() const {
+   return callback_;
 }
 
 Ref<DetectorResult> Detector::detect(DecodeHints const& hints) {
   callback_ = hints.getResultPointCallback();
   FinderPatternFinder finder(image_, hints.getResultPointCallback());
   Ref<FinderPatternInfo> info(finder.find(hints));
+  return processFinderPatternInfo(info);
+}
 
+Ref<DetectorResult> Detector::processFinderPatternInfo(Ref<FinderPatternInfo> info){
   Ref<FinderPattern> topLeft(info->getTopLeft());
   Ref<FinderPattern> topRight(info->getTopRight());
   Ref<FinderPattern> bottomLeft(info->getBottomLeft());
@@ -82,7 +92,7 @@ Ref<DetectorResult> Detector::detect(DecodeHints const& hints) {
       try {
         alignmentPattern = findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY, (float)i);
         break;
-      } catch (zxing::ReaderException re) {
+      } catch (zxing::ReaderException const& re) {
         // try next round
       }
     }
@@ -102,7 +112,7 @@ Ref<DetectorResult> Detector::detect(DecodeHints const& hints) {
     points[3].reset(alignmentPattern);
   }
 
-  Ref<DetectorResult> result(new DetectorResult(bits, points, transform));
+            Ref<DetectorResult> result(new DetectorResult(bits, points));
   return result;
 }
 
@@ -117,12 +127,14 @@ Ref<PerspectiveTransform> Detector::createTransform(Ref<ResultPoint> topLeft, Re
   if (alignmentPattern != 0) {
     bottomRightX = alignmentPattern->getX();
     bottomRightY = alignmentPattern->getY();
-    sourceBottomRightX = sourceBottomRightY = dimMinusThree - 3.0f;
+    sourceBottomRightX = dimMinusThree - 3.0f;
+    sourceBottomRightY = sourceBottomRightX;
   } else {
     // Don't have an alignment pattern, just make up the bottom-right point
     bottomRightX = (topRight->getX() - topLeft->getX()) + bottomLeft->getX();
     bottomRightY = (topRight->getY() - topLeft->getY()) + bottomLeft->getY();
-    sourceBottomRightX = sourceBottomRightY = dimMinusThree;
+    sourceBottomRightX = dimMinusThree;
+    sourceBottomRightY = dimMinusThree;
   }
 
   Ref<PerspectiveTransform> transform(PerspectiveTransform::quadrilateralToQuadrilateral(3.5f, 3.5f, dimMinusThree, 3.5f, sourceBottomRightX,
@@ -139,8 +151,10 @@ Ref<BitMatrix> Detector::sampleGrid(Ref<BitMatrix> image, int dimension, Ref<Per
 
 int Detector::computeDimension(Ref<ResultPoint> topLeft, Ref<ResultPoint> topRight, Ref<ResultPoint> bottomLeft,
                                float moduleSize) {
-  int tltrCentersDimension = int(FinderPatternFinder::distance(topLeft, topRight) / moduleSize + 0.5f);
-  int tlblCentersDimension = int(FinderPatternFinder::distance(topLeft, bottomLeft) / moduleSize + 0.5f);
+  int tltrCentersDimension =
+    math_utils::round(ResultPoint::distance(topLeft, topRight) / moduleSize);
+  int tlblCentersDimension =
+    math_utils::round(ResultPoint::distance(topLeft, bottomLeft) / moduleSize);
   int dimension = ((tltrCentersDimension + tlblCentersDimension) >> 1) + 7;
   switch (dimension & 0x03) { // mod 4
   case 0:
@@ -181,84 +195,88 @@ float Detector::calculateModuleSizeOneWay(Ref<ResultPoint> pattern, Ref<ResultPo
 
 float Detector::sizeOfBlackWhiteBlackRunBothWays(int fromX, int fromY, int toX, int toY) {
 
-   float result = sizeOfBlackWhiteBlackRun(fromX, fromY, toX, toY);
+    float result = sizeOfBlackWhiteBlackRun(fromX, fromY, toX, toY);
 
-   // Now count other way -- don't run off image though of course
-   float scale = 1.0f;
-   int otherToX = fromX - (toX - fromX);
-   if (otherToX < 0) {
-     scale = (float) fromX / (float) (fromX - otherToX);
-     otherToX = 0;
-   } else if (otherToX > (int)image_->getWidth()) {
-     scale = (float) (image_->getWidth() - fromX) / (float) (otherToX - fromX);
-     otherToX = image_->getWidth();
-   }
-   int otherToY = (int) (fromY - (toY - fromY) * scale);
+    // Now count other way -- don't run off image though of course
+    float scale = 1.0f;
+    int otherToX = fromX - (toX - fromX);
+    if (otherToX < 0) {
+      scale = (float) fromX / (float) (fromX - otherToX);
+      otherToX = 0;
+    } else if (otherToX >= (int)image_->getWidth()) {
+      scale = (float) (image_->getWidth() - 1 - fromX) / (float) (otherToX - fromX);
+      otherToX = image_->getWidth() - 1;
+    }
+    int otherToY = (int) (fromY - (toY - fromY) * scale);
 
-   scale = 1.0f;
-   if (otherToY < 0) {
-     scale = (float) fromY / (float) (fromY - otherToY);
-     otherToY = 0;
-   } else if (otherToY > (int)image_->getHeight()) {
-     scale = (float) (image_->getHeight() - fromY) / (float) (otherToY - fromY);
-     otherToY = image_->getHeight();
-   }
-   otherToX = (int) (fromX + (otherToX - fromX) * scale);
+    scale = 1.0f;
+    if (otherToY < 0) {
+      scale = (float) fromY / (float) (fromY - otherToY);
+      otherToY = 0;
+    } else if (otherToY >= (int)image_->getHeight()) {
+      scale = (float) (image_->getHeight() - 1 - fromY) / (float) (otherToY - fromY);
+      otherToY = image_->getHeight() - 1;
+    }
+    otherToX = (int) (fromX + (otherToX - fromX) * scale);
 
-   result += sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
-   return result;
+    result += sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
+
+    // Middle pixel is double-counted this way; subtract 1
+    return result - 1.0f;
 }
 
 float Detector::sizeOfBlackWhiteBlackRun(int fromX, int fromY, int toX, int toY) {
-  // Mild variant of Bresenham's algorithm;
-  // see http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
-  bool steep = abs(toY - fromY) > abs(toX - fromX);
-  if (steep) {
-    int temp = fromX;
-    fromX = fromY;
-    fromY = temp;
-    temp = toX;
-    toX = toY;
-    toY = temp;
-  }
+    // Mild variant of Bresenham's algorithm;
+    // see http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+    bool steep = abs(toY - fromY) > abs(toX - fromX);
+    if (steep) {
+      int temp = fromX;
+      fromX = fromY;
+      fromY = temp;
+      temp = toX;
+      toX = toY;
+      toY = temp;
+    }
 
-  int dx = abs(toX - fromX);
-  int dy = abs(toY - fromY);
-  int error = -dx >> 1;
-  int ystep = fromY < toY ? 1 : -1;
-  int xstep = fromX < toX ? 1 : -1;
-  int state = 0; // In black pixels, looking for white, first or second time
-  for (int x = fromX, y = fromY; x != toX; x += xstep) {
+    int dx = abs(toX - fromX);
+    int dy = abs(toY - fromY);
+    int error = -dx >> 1;
+    int xstep = fromX < toX ? 1 : -1;
+    int ystep = fromY < toY ? 1 : -1;
 
-    int realX = steep ? y : x;
-    int realY = steep ? x : y;
-    if (state == 1) { // In white pixels, looking for black
-      if (image_->get(realX, realY)) {
+    // In black pixels, looking for white, first or second time.
+    int state = 0;
+    // Loop up until x == toX, but not beyond
+    int xLimit = toX + xstep;
+    for (int x = fromX, y = fromY; x != xLimit; x += xstep) {
+      int realX = steep ? y : x;
+      int realY = steep ? x : y;
+
+      // Does current pixel mean we have moved white to black or vice versa?
+      if (!((state == 1) ^ image_->get(realX, realY))) {
+        if (state == 2) {
+          return math_utils::distance(x, y, fromX, fromY);
+        }
         state++;
       }
-    } else {
-      if (!image_->get(realX, realY)) {
-        state++;
-      }
-    }
 
-    if (state == 3) { // Found black, white, black, and stumbled back onto white; done
-      int diffX = x - fromX;
-      int diffY = y - fromY;
-      if (xstep < 0) {
-          diffX++;
+      error += dy;
+      if (error > 0) {
+        if (y == toY) {
+          break;
+        }
+        y += ystep;
+        error -= dx;
       }
-      return (float)sqrt((double)(diffX * diffX + diffY * diffY));
     }
-    error += dy;
-    if (error > 0) {
-      y += ystep;
-      error -= dx;
+    // Found black-white-black; give the benefit of the doubt that the next pixel outside the image
+    // is "white" so this last point at (toX+xStep,toY) is the right ending. This is really a
+    // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
+    if (state == 2) {
+      return math_utils::distance(toX + xstep, toY, fromX, fromY);
     }
-  }
-  int diffX = toX - fromX;
-  int diffY = toY - fromY;
-  return (float)sqrt((double)(diffX * diffX + diffY * diffY));
+    // else we didn't find even black-white-black; no estimate is really possible
+    return NAN;
 }
 
 Ref<AlignmentPattern> Detector::findAlignmentInRegion(float overallEstModuleSize, int estAlignmentX, int estAlignmentY,

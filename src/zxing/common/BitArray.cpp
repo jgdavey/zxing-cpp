@@ -1,7 +1,5 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
- *  BitArray.cpp
- *  zxing
- *
  *  Copyright 2010 ZXing authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,32 +16,14 @@
  */
 
 #include <zxing/common/BitArray.h>
-#include <iostream>
-#include <limits>
 
 using namespace std;
 
 namespace zxing {
 
-static unsigned int logDigits(unsigned digits) {
-  unsigned log = 0;
-  unsigned val = 1;
-  while (val < digits) {
-    log++;
-    val <<= 1;
-  }
-  return log;
-}
-
-const unsigned int BitArray::bitsPerWord_ = numeric_limits<unsigned int>::digits;
-const unsigned int BitArray::logBits_ = logDigits(bitsPerWord_);
-const unsigned int BitArray::bitsMask_ = (1 << logBits_) - 1;
 
 size_t BitArray::wordsForBits(size_t bits) {
-  int arraySize = bits >> logBits_;
-  if (bits - (arraySize << logBits_) != 0) {
-    arraySize++;
-  }
+  int arraySize = (bits + bitsPerWord_ - 1) >> logBits_;
   return arraySize;
 }
 
@@ -58,16 +38,34 @@ size_t BitArray::getSize() {
   return size_;
 }
 
-bool BitArray::get(size_t i) {
-  return (bits_[i >> logBits_] & (1 << (i & bitsMask_))) != 0;
-}
-
-void BitArray::set(size_t i) {
-  bits_[i >> logBits_] |= 1 << (i & bitsMask_);
-}
-
 void BitArray::setBulk(size_t i, unsigned int newBits) {
   bits_[i >> logBits_] = newBits;
+}
+
+void BitArray::setRange(int start, int end) {
+  if (end < start) {
+    throw IllegalArgumentException("invalid call to BitArray::setRange");
+  }
+  if (end == start) {
+    return;
+  }
+  end--; // will be easier to treat this as the last actually set bit -- inclusive
+  int firstInt = start >> 5;
+  int lastInt = end >> 5;
+  for (int i = firstInt; i <= lastInt; i++) {
+    int firstBit = i > firstInt ? 0 : start & 0x1F;
+    int lastBit = i < lastInt ? 31 : end & 0x1F;
+    int mask;
+    if (firstBit == 0 && lastBit == 31) {
+      mask = -1;
+    } else {
+      mask = 0;
+      for (int j = firstBit; j <= lastBit; j++) {
+        mask |= 1 << j;
+      }
+    }
+    bits_[i] |= mask;
+  }
 }
 
 void BitArray::clear() {

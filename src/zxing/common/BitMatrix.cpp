@@ -1,7 +1,5 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
- *  BitMatrix.cpp
- *  zxing
- *
  *  Copyright 2010 ZXing authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,44 +22,34 @@
 #include <sstream>
 #include <string>
 
-namespace zxing {
-using namespace std;
+using std::ostream;
+using std::ostringstream;
 
-unsigned int logDigits(unsigned digits) {
-  unsigned log = 0;
-  unsigned val = 1;
-  while (val < digits) {
-    log++;
-    val <<= 1;
+using zxing::BitMatrix;
+using zxing::BitArray;
+using zxing::Ref;
+
+namespace {
+  size_t wordsForSize(size_t width,
+                      size_t height,
+                      unsigned int bitsPerWord,
+                      unsigned int logBits) {
+    size_t bits = width * height;
+    int arraySize = (bits + bitsPerWord - 1) >> logBits;
+    return arraySize;
   }
-  return log;
-}
-
-const unsigned int bitsPerWord = numeric_limits<unsigned int>::digits;
-const unsigned int logBits = logDigits(bitsPerWord);
-const unsigned int bitsMask = (1 << logBits) - 1;
-
-static size_t wordsForSize(size_t width, size_t height) {
-  size_t bits = width * height;
-  int arraySize = bits >> logBits;
-  if (bits - (arraySize << logBits) != 0) {
-    arraySize++;
-  }
-  return arraySize;
 }
 
 BitMatrix::BitMatrix(size_t dimension) :
-    width_(dimension), height_(dimension), words_(0), bits_(NULL) {
-
-  words_ = wordsForSize(width_, height_);
+  width_(dimension), height_(dimension), words_(0), bits_(NULL) {
+  words_ = wordsForSize(width_, height_, bitsPerWord, logBits);
   bits_ = new unsigned int[words_];
   clear();
 }
 
 BitMatrix::BitMatrix(size_t width, size_t height) :
-    width_(width), height_(height), words_(0), bits_(NULL) {
-
-  words_ = wordsForSize(width_, height_);
+  width_(width), height_(height), words_(0), bits_(NULL) {
+  words_ = wordsForSize(width_, height_, bitsPerWord, logBits);
   bits_ = new unsigned int[words_];
   clear();
 }
@@ -70,16 +58,6 @@ BitMatrix::~BitMatrix() {
   delete[] bits_;
 }
 
-
-bool BitMatrix::get(size_t x, size_t y) const {
-  size_t offset = x + width_ * y;
-  return ((bits_[offset >> logBits] >> (offset & bitsMask)) & 0x01) != 0;
-}
-
-void BitMatrix::set(size_t x, size_t y) {
-  size_t offset = x + width_ * y;
-  bits_[offset >> logBits] |= 1 << (offset & bitsMask);
-}
 
 void BitMatrix::flip(size_t x, size_t y) {
   size_t offset = x + width_ * y;
@@ -127,7 +105,7 @@ Ref<BitArray> BitMatrix::getRow(int y, Ref<BitArray> row) {
     size_t lastBit = i < lastWord ? bitsPerWord - 1 : end & bitsMask;
     unsigned int mask;
     if (firstBit == 0 && lastBit == logBits) {
-      mask = numeric_limits<unsigned int>::max();
+      mask = std::numeric_limits<unsigned int>::max();
     } else {
       mask = 0;
       for (size_t j = firstBit; j <= lastBit; j++) {
@@ -160,19 +138,20 @@ unsigned int* BitMatrix::getBits() const {
   return bits_;
 }
 
-ostream& operator<<(ostream &out, const BitMatrix &bm) {
-  for (size_t y = 0; y < bm.height_; y++) {
-    for (size_t x = 0; x < bm.width_; x++) {
-      out << (bm.get(x, y) ? "X " : "  ");
+namespace zxing {
+  ostream& operator<<(ostream &out, const BitMatrix &bm) {
+    for (size_t y = 0; y < bm.height_; y++) {
+      for (size_t x = 0; x < bm.width_; x++) {
+        out << (bm.get(x, y) ? "X " : "  ");
+      }
+      out << "\n";
     }
-    out << "\n";
+    return out;
   }
-  return out;
 }
-const char *BitMatrix::description() {
+
+const char* BitMatrix::description() {
   ostringstream out;
   out << *this;
   return out.str().c_str();
-}
-
 }

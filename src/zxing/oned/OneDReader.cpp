@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
  *  OneDReader.cpp
  *  ZXing
@@ -48,7 +49,7 @@ namespace zxing {
           result.putMetadata(ResultMetadataType.ORIENTATION, new Integer(orientation));
           */
           // Update result points
-          std::vector<Ref<ResultPoint> > points (result->getResultPoints());
+          std::vector<Ref<ResultPoint> >& points (result->getResultPoints());
           int height = rotatedImage->getHeight();
           for (size_t i = 0; i < points.size(); i++) {
             points[i].reset(new OneDResultPoint(height - points[i]->getY() - 1, points[i]->getX()));
@@ -88,9 +89,9 @@ namespace zxing {
         // Estimate black point for this row and load it:
         try {
           row = image->getBlackRow(rowNumber, row);
-        } catch (ReaderException re) {
+        } catch (ReaderException const& re) {
           continue;
-        } catch (IllegalArgumentException re) {
+        } catch (IllegalArgumentException const& re) {
           continue;
         }
 

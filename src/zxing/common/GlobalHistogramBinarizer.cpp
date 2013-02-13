@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
  *  GlobalHistogramBinarizer.cpp
  *  zxing
@@ -18,8 +19,8 @@
  */
 
 #include <zxing/common/GlobalHistogramBinarizer.h>
-
 #include <zxing/common/IllegalArgumentException.h>
+#include <zxing/common/Array.h>
 
 namespace zxing {
 using namespace std;
@@ -63,7 +64,7 @@ Ref<BitArray> GlobalHistogramBinarizer::getBlackRow(int y, Ref<BitArray> row) {
     for (int x = 0; x < width; x++) {
       histogram[row_pixels[x] >> LUMINANCE_SHIFT]++;
     }
-    int blackPoint = estimate(histogram) << LUMINANCE_SHIFT;
+    int blackPoint = estimate(histogram);
 
     BitArray& array = *row;
     int left = row_pixels[0];
@@ -106,32 +107,31 @@ Ref<BitMatrix> GlobalHistogramBinarizer::getBlackMatrix() {
   // Quickly calculates the histogram by sampling four rows from the image.
   // This proved to be more robust on the blackbox tests than sampling a
   // diagonal as we used to do.
-  unsigned char* row = new unsigned char[width];
+  ArrayRef<unsigned char> ref (width);
+  unsigned char* row = &ref[0];
   for (int y = 1; y < 5; y++) {
     int rownum = height * y / 5;
     int right = (width << 2) / 5;
-    int sdf;
     row = source.getRow(rownum, row);
     for (int x = width / 5; x < right; x++) {
       histogram[row[x] >> LUMINANCE_SHIFT]++;
-      sdf = histogram[row[x] >> LUMINANCE_SHIFT];
     }
   }
 
-  int blackPoint = estimate(histogram) << LUMINANCE_SHIFT;
+  int blackPoint = estimate(histogram);
 
   Ref<BitMatrix> matrix_ref(new BitMatrix(width, height));
   BitMatrix& matrix = *matrix_ref;
   for (int y = 0; y < height; y++) {
     row = source.getRow(y, row);
     for (int x = 0; x < width; x++) {
-      if (row[x] <= blackPoint)
+      if (row[x] < blackPoint)
         matrix.set(x, y);
     }
   }
 
   cached_matrix_ = matrix_ref;
-  delete [] row;
+  // delete [] row;
   return matrix_ref;
 }
 
@@ -199,7 +199,7 @@ int GlobalHistogramBinarizer::estimate(vector<int> &histogram) {
     }
   }
 
-  return bestValley;
+  return bestValley << LUMINANCE_SHIFT;
 }
 
 Ref<Binarizer> GlobalHistogramBinarizer::createBinarizer(Ref<LuminanceSource> source) {

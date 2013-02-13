@@ -1,7 +1,5 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
- *  Code128Reader.cpp
- *  ZXing
- *
  *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -176,16 +174,15 @@ namespace zxing {
 								bestMatch = startCode;
 							}
 						}
-						if (bestMatch >= 0) {
-							// Look for whitespace before start pattern, >= 50% of width of start pattern
-							if (row->isRange(fmaxl(0, patternStart - (i - patternStart) / 2), patternStart,
+            // Look for whitespace before start pattern, >= 50% of width of start pattern
+						if (bestMatch >= 0 &&
+                row->isRange(std::max(0, patternStart - (i - patternStart) / 2), patternStart,
 							    false)) {
-								int* resultValue = new int[3];
-								resultValue[0] = patternStart;
-								resultValue[1] = i;
-								resultValue[2] = bestMatch;
-								return resultValue;
-							}
+              int* resultValue = new int[3];
+              resultValue[0] = patternStart;
+              resultValue[1] = i;
+              resultValue[2] = bestMatch;
+              return resultValue;
 						}
 						patternStart += counters[0] + counters[1];
 						for (int y = 2; y < patternLength; y++) {
@@ -279,7 +276,7 @@ namespace zxing {
           // Decode another code from image
           try {
             code = decodeCode(row, counters, sizeof(counters)/sizeof(int), nextStart);
-          } catch (ReaderException re) {
+          } catch (ReaderException const& re) {
             throw re;
           }
 
@@ -376,11 +373,14 @@ namespace zxing {
               }
               break;
             case CODE_CODE_C:
-            // the code read in this case is the number encoded directly
+              tmpResultSStr.str(std::string());
+              // the code read in this case is the number encoded directly
               if (code < 100) {
-                if (code < 10)
-                tmpResultSStr << '0';
-              tmpResultSStr << code;
+                if (code < 10) {
+ 					        tmpResultSStr << '0';
+ 				        }
+                tmpResultSStr << code;
+ 				        tmpResultString.append(tmpResultSStr.str());
               } else {
                 if (code != CODE_STOP) {
                   lastCharacterWasPrintable = false;
@@ -427,7 +427,9 @@ namespace zxing {
         while (nextStart < width && row->get(nextStart)) {
           nextStart++;
         }
-        if (!row->isRange(nextStart, fminl(width, nextStart + (nextStart - lastStart) / 2), false)) {
+        if (!row->isRange(nextStart,
+                          std::min(width, nextStart + (nextStart - lastStart) / 2),
+                          false)) {
           throw ReaderException("");
         }
 
@@ -437,9 +439,6 @@ namespace zxing {
         if (checksumTotal % 103 != lastCode) {
           throw ReaderException("");
         }
-
-        if (codeSet == CODE_CODE_C)
-          tmpResultString.append(tmpResultSStr.str());
 
         // Need to pull out the check digits from string
         int resultLength = tmpResultString.length();

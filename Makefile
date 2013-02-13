@@ -7,7 +7,8 @@ endif
 
 PREFIX = /usr/local
 
-MODULES   := zxing zxing/common zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
+MODULES   := zxing zxing/common zxing/common/detector zxing/aztec zxing/aztec/detector zxing/aztec/decoder zxing/common/reedsolomon zxing/datamatrix zxing/datamatrix/decoder zxing/datamatrix/detector zxing/oned zxing/qrcode zxing/qrcode/detector zxing/qrcode/decoder
+
 SRC_DIR   := $(addprefix src/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 

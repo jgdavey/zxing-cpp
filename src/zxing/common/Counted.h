@@ -1,10 +1,8 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 #ifndef __COUNTED_H__
 #define __COUNTED_H__
 
 /*
- *  Counted.h
- *  zxing
- *
  *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +19,6 @@
  */
 
 //#define DEBUG_COUNTING
-//using namespace std;
 
 #include <iostream>
 
@@ -45,7 +42,7 @@ public:
   }
   virtual ~Counted() {
   }
-  virtual Counted *retain() {
+  Counted *retain() {
 #ifdef DEBUG_COUNTING
     cout << "retaining " << typeid(*this).name() << " " << this <<
          " @ " << count_;
@@ -56,7 +53,7 @@ public:
 #endif
     return this;
   }
-  virtual void release() {
+  void release() {
 #ifdef DEBUG_COUNTING
     cout << "releasing " << typeid(*this).name() << " " << this <<
          " @ " << count_;
@@ -178,8 +175,8 @@ public:
     return object_;
   }
 
-  bool operator==(const int x) {
-    return x == 0 ? object_ == 0 : false;
+  bool operator==(const T* that) {
+    return object_ == that;
   }
   bool operator==(const Ref &other) const {
     return object_ == other.object_ || *object_ == *(other.object_);
@@ -189,8 +186,8 @@ public:
     return object_ == other.object_ || *object_ == *(other.object_);
   }
 
-  bool operator!=(const int x) {
-    return x == 0 ? object_ != 0 : true;
+  bool operator!=(const T* that) {
+    return !(*this == that);
   }
 
   bool empty() const {

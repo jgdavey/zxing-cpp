@@ -23,9 +23,10 @@
 
 #include <string>
 #include <sstream>
+#include <zxing/common/Array.h>
 #include <zxing/common/BitSource.h>
 #include <zxing/common/Counted.h>
-#include <zxing/common/Array.h>
+#include <zxing/common/DecoderResult.h>
 
 
 namespace zxing {
@@ -78,9 +79,9 @@ private:
   /**
    * See ISO 16022:2006, 5.2.9 and Annex B, B.2
    */
-  void decodeBase256Segment(Ref<BitSource> bits, std::ostringstream &result);//,std::vector<unsigned char> byteSegments);
+  void decodeBase256Segment(Ref<BitSource> bits, std::ostringstream &result, std::vector<unsigned char> byteSegments);
 
-  void parseTwoBytes(int firstByte, int secondByte, int*& result);
+  void parseTwoBytes(int firstByte, int secondByte, int* result);
   /**
    * See ISO 16022:2006, Annex B, B.2
    */
@@ -94,7 +95,7 @@ private:
 
 public:
   DecodedBitStreamParser() { };
-  std::string decode(ArrayRef<unsigned char> bytes);
+  Ref<DecoderResult> decode(ArrayRef<unsigned char> bytes);
 };
 
 }

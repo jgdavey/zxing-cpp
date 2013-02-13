@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
@@ -93,7 +94,7 @@ public:
   }
 };
 
-template<typename T> class ArrayRef {
+template<typename T> class ArrayRef : public Counted {
 private:
 public:
   Array<T> *array_;
@@ -132,7 +133,7 @@ public:
     reset(const_cast<Array<T> *>(&a));
   }
   ArrayRef(const ArrayRef &other) :
-      array_(0) {
+      Counted(), array_(0) {
 #ifdef DEBUG_COUNTING
     cout << "instantiating ArrayRef " << this << " from ArrayRef " << &other << ":\n";
 #endif

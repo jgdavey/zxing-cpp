@@ -21,6 +21,8 @@
 #include <zxing/common/IllegalArgumentException.h>
 namespace zxing {
 
+const DecodeHintType DecodeHints::CHARACTER_SET;
+
 const DecodeHints DecodeHints::PRODUCT_HINT(
     BARCODEFORMAT_UPC_E_HINT |
     BARCODEFORMAT_UPC_A_HINT |
@@ -44,8 +46,8 @@ const DecodeHints DecodeHints::DEFAULT_HINT(
     BARCODEFORMAT_CODE_128_HINT |
     BARCODEFORMAT_CODE_39_HINT |
     BARCODEFORMAT_ITF_HINT |
-    // TODO: uncomment once this passes QA
-    // BARCODEFORMAT_DATA_MATRIX_HINT |
+    BARCODEFORMAT_DATA_MATRIX_HINT |
+    BARCODEFORMAT_AZTEC_HINT |
     BARCODEFORMAT_QR_CODE_HINT);
 
 DecodeHints::DecodeHints() {
@@ -58,6 +60,7 @@ DecodeHints::DecodeHints(DecodeHintType init) {
 
 void DecodeHints::addFormat(BarcodeFormat toadd) {
   switch (toadd) {
+    case BarcodeFormat_AZTEC: hints |= BARCODEFORMAT_AZTEC_HINT; break;
     case BarcodeFormat_QR_CODE: hints |= BARCODEFORMAT_QR_CODE_HINT; break;
     case BarcodeFormat_DATA_MATRIX: hints |= BARCODEFORMAT_DATA_MATRIX_HINT; break;
     case BarcodeFormat_UPC_E: hints |= BARCODEFORMAT_UPC_E_HINT; break;
@@ -74,6 +77,7 @@ void DecodeHints::addFormat(BarcodeFormat toadd) {
 bool DecodeHints::containsFormat(BarcodeFormat tocheck) const {
   DecodeHintType checkAgainst;
   switch (tocheck) {
+    case BarcodeFormat_AZTEC: checkAgainst = BARCODEFORMAT_AZTEC_HINT; break;
     case BarcodeFormat_QR_CODE: checkAgainst = BARCODEFORMAT_QR_CODE_HINT; break;
     case BarcodeFormat_DATA_MATRIX: checkAgainst = BARCODEFORMAT_DATA_MATRIX_HINT; break;
     case BarcodeFormat_UPC_E: checkAgainst = BARCODEFORMAT_UPC_E_HINT; break;
